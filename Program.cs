@@ -24,11 +24,11 @@ namespace MstscLauncher
                     return;
                 }
 
-	            if (args.Length == 0)
-	            {
-		            SetupProtocolHandelingInRegistry();
-		            return;
-	            }
+                if (args.Length == 0)
+                {
+                    SetupProtocolHandelingInRegistry();
+                    return;
+                }
 
                 Uri uri = new Uri(args[0]);
 
@@ -89,31 +89,31 @@ namespace MstscLauncher
         {
             var path = new FileInfo(exe);
 
-	        Process p = new Process
-	        {
-		        StartInfo =
-		        {
-			        UseShellExecute = false,
-			        FileName = path.Name,
-			        WorkingDirectory = path.Directory.FullName,
-			        Arguments = String.Join(" ", args.Where(s => !String.IsNullOrEmpty(s)))
-		        }
-	        };
-	        p.Start();
+            Process p = new Process
+            {
+                StartInfo =
+                {
+                    UseShellExecute = false,
+                    FileName = path.Name,
+                    WorkingDirectory = path.Directory.FullName,
+                    Arguments = String.Join(" ", args.Where(s => !String.IsNullOrEmpty(s)))
+                }
+            };
+            p.Start();
         }
 
         static void SetupProtocolHandelingInRegistry()
         {
-				var mstscLauncherPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var mstscLauncherPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
-			var hkcr = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Default);
+            var hkcr = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Default);
 
             try
             {
-	            RegisterProtocol(hkcr, mstscLauncherPath, "mstsc");
-					RegisterProtocol(hkcr, mstscLauncherPath, "rdp");
+                RegisterProtocol(hkcr, mstscLauncherPath, "mstsc");
+                RegisterProtocol(hkcr, mstscLauncherPath, "rdp");
 
-	            MessageBox.Show("URL handler registered", "Mstsc Launcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("URL handler registered", "Mstsc Launcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (UnauthorizedAccessException)
             {
@@ -121,19 +121,19 @@ namespace MstscLauncher
             }
         }
 
-	    private static void RegisterProtocol(RegistryKey hkcr, string mstscLauncherPath, string protocolName)
-	    {
-		    var mstsc = hkcr.CreateSubKey(protocolName);
+        private static void RegisterProtocol(RegistryKey hkcr, string mstscLauncherPath, string protocolName)
+        {
+            var mstsc = hkcr.CreateSubKey(protocolName);
 
-		    var DefaultIcon = mstsc.CreateSubKey("DefaultIcon");
-		    var Shell = mstsc.CreateSubKey("Shell");
-		    var Open = Shell.CreateSubKey("Open");
-		    var Command = Open.CreateSubKey("Command");
+            var DefaultIcon = mstsc.CreateSubKey("DefaultIcon");
+            var Shell = mstsc.CreateSubKey("Shell");
+            var Open = Shell.CreateSubKey("Open");
+            var Command = Open.CreateSubKey("Command");
 
-		    mstsc.SetValue("", "URL:Remote Desktop Client Launcher");
-		    mstsc.SetValue("URL Protocol", "");
-		    DefaultIcon.SetValue("", $"\"{mstscLauncherPath}\",1");
-		    Command.SetValue("", $"\"{mstscLauncherPath}\" \"%1\"");
-	    }
+            mstsc.SetValue("", "URL:Remote Desktop Client Launcher");
+            mstsc.SetValue("URL Protocol", "");
+            DefaultIcon.SetValue("", $"\"{mstscLauncherPath}\",1");
+            Command.SetValue("", $"\"{mstscLauncherPath}\" \"%1\"");
+        }
     }
 }
