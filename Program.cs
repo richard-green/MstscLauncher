@@ -104,7 +104,7 @@ namespace MstscLauncher
 
         static void SetupProtocolHandelingInRegistry()
         {
-				var mstscLauncherPath = Path.Combine(Environment.CurrentDirectory, "MstscLauncher.exe");
+				var mstscLauncherPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
 			var hkcr = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Default);
 
