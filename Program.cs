@@ -32,7 +32,7 @@ namespace MstscLauncher
 
                 Uri uri = new Uri(args[0]);
 
-                if (uri.Scheme.Equals("mstsc", StringComparison.CurrentCultureIgnoreCase))
+                if (uri.Scheme.Equals("mstsc", StringComparison.CurrentCultureIgnoreCase) || uri.Scheme.Equals("rdp", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var host = $"/v:{uri.Host}{(uri.IsDefaultPort ? "" : $":{uri.Port}")}";
 
@@ -110,7 +110,8 @@ namespace MstscLauncher
 
             try
             {
-	            RegisterProtocol(hkcr, mstscLauncherPath);
+	            RegisterProtocol(hkcr, mstscLauncherPath, "mstsc");
+					RegisterProtocol(hkcr, mstscLauncherPath, "rdp");
 
 	            MessageBox.Show("URL handler registered", "Mstsc Launcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -120,9 +121,9 @@ namespace MstscLauncher
             }
         }
 
-	    private static void RegisterProtocol(RegistryKey hkcr, string mstscLauncherPath)
+	    private static void RegisterProtocol(RegistryKey hkcr, string mstscLauncherPath, string protocolName)
 	    {
-		    var mstsc = hkcr.CreateSubKey("mstsc");
+		    var mstsc = hkcr.CreateSubKey(protocolName);
 
 		    var DefaultIcon = mstsc.CreateSubKey("DefaultIcon");
 		    var Shell = mstsc.CreateSubKey("Shell");
