@@ -39,3 +39,5 @@ Query string parameters supported:
 * **rdp://sangria/?w=640&h=480** _// connect to the machine called "sangria" with a window size of 640x480_
 
 * **rdp://sangiovese/?multimon=** _// connect to the machine called "sangiovese" using all available monitors_
+
+Hi Rich :)
