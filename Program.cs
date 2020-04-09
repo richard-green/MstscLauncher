@@ -26,7 +26,7 @@ namespace MstscLauncher
 
                 if (args.Length == 0)
                 {
-                    SetupProtocolHandelingInRegistry();
+                    SetupProtocolHandlingInRegistry();
                     return;
                 }
 
@@ -102,7 +102,7 @@ namespace MstscLauncher
             p.Start();
         }
 
-        static void SetupProtocolHandelingInRegistry()
+        static void SetupProtocolHandlingInRegistry()
         {
             var mstscLauncherPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
