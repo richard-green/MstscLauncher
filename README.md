@@ -1,6 +1,6 @@
 # MstscLauncher
 
-Allows your system to process Remote Desktop urls of the format: mstsc://your-computer-name/
+Allows your system to process Remote Desktop urls of the format: **mstsc://your-computer-name/** or **rdp://company-server-01/**
 
 First, run the program in Administrator mode so it can correctly register the URL with the windows registry.
 
@@ -31,3 +31,11 @@ Query string parameters supported:
 * control – Allows control of the session.
 
 * noConsentPrompt – Allows shadowing without user consent.
+
+## Example Usages
+
+* **rdp://merlot/?admin=&f=**  _// connect to the machine called "merlot" in admin mode with fullscreen_
+
+* **rdp://sangria/?w=640&h=480** _// connect to the machine called "sangria" with a window size of 640x480_
+
+* **rdp://sangiovese/?multimon=** _// connect to the machine called "sangiovese" using all available monitors_
