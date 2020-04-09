@@ -20,26 +20,25 @@ namespace MstscLauncher
 
                 if (File.Exists(mstsc) == false)
                 {
-                    MessageBox.Show(String.Format("{0} was not found", mstsc), "File not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"{mstsc} was not found", "File not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                SetupRegistry(mstsc);
-
                 if (args.Length == 0)
                 {
+                    SetupProtocolHandlingInRegistry();
                     return;
                 }
 
                 Uri uri = new Uri(args[0]);
 
-                if (uri.Scheme.Equals("mstsc", StringComparison.CurrentCultureIgnoreCase))
+                if (uri.Scheme.Equals("mstsc", StringComparison.CurrentCultureIgnoreCase) || uri.Scheme.Equals("rdp", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var host = String.Format("/v:{0}{1}", uri.Host, uri.IsDefaultPort ? "" : String.Format(":{0}", uri.Port));
+                    var host = $"/v:{uri.Host}{(uri.IsDefaultPort ? "" : $":{uri.Port}")}";
 
                     if (String.IsNullOrEmpty(uri.Query) == false)
                     {
-                        var arguments = new List<string>() { host };
+                        var arguments = new List<string> { host };
                         var query = HttpUtility.ParseQueryString(uri.Query);
 
                         foreach (var key in query.AllKeys)
@@ -56,13 +55,13 @@ namespace MstscLauncher
                                 case "prompt":
                                 case "control":
                                 case "noConsentPrompt":
-                                    arguments.Add(String.Format("/{0}", key));
+                                    arguments.Add($"/{key}");
                                     break;
 
                                 case "w":
                                 case "h":
                                 case "shadow":
-                                    arguments.Add(String.Format("/{0}:{1}", key, query[key]));
+                                    arguments.Add($"/{key}:{query[key]}");
                                     break;
                             }
                         }
@@ -90,45 +89,51 @@ namespace MstscLauncher
         {
             var path = new FileInfo(exe);
 
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.FileName = path.Name;
-            p.StartInfo.WorkingDirectory = path.Directory.FullName;
-            p.StartInfo.Arguments = String.Join(" ", args.Where(s => String.IsNullOrEmpty(s) == false));
+            Process p = new Process
+            {
+                StartInfo =
+                {
+                    UseShellExecute = false,
+                    FileName = path.Name,
+                    WorkingDirectory = path.Directory.FullName,
+                    Arguments = String.Join(" ", args.Where(s => !String.IsNullOrEmpty(s)))
+                }
+            };
             p.Start();
         }
 
-        static void SetupRegistry(string exe)
+        static void SetupProtocolHandlingInRegistry()
         {
-            var launcher = Path.Combine(Environment.CurrentDirectory, "MstscLauncher.exe");
+            var mstscLauncherPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
             var hkcr = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Default);
 
-            var mstsc = hkcr.OpenSubKey("mstsc");
-
-            if (mstsc == null)
+            try
             {
-                try
-                {
-                    mstsc = hkcr.CreateSubKey("mstsc");
+                RegisterProtocol(hkcr, mstscLauncherPath, "mstsc");
+                RegisterProtocol(hkcr, mstscLauncherPath, "rdp");
 
-                    var DefaultIcon = mstsc.CreateSubKey("DefaultIcon");
-                    var Shell = mstsc.CreateSubKey("Shell");
-                    var Open = Shell.CreateSubKey("Open");
-                    var Command = Open.CreateSubKey("Command");
-
-                    mstsc.SetValue("", "URL:Remote Desktop Client Launcher");
-                    mstsc.SetValue("URL Protocol", "");
-                    DefaultIcon.SetValue("", String.Format("\"{0}\",1", launcher));
-                    Command.SetValue("", String.Format("\"{0}\" \"%1\"", launcher));
-
-                    MessageBox.Show("URL handler registered", "Mstsc Launcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    MessageBox.Show("Could not register as URL handler, please run again as administrator", "Mstsc Launcher", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                MessageBox.Show("URL handler registered", "Mstsc Launcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show("Could not register as URL handler, please run again as administrator", "Mstsc Launcher", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private static void RegisterProtocol(RegistryKey hkcr, string mstscLauncherPath, string protocolName)
+        {
+            var mstsc = hkcr.CreateSubKey(protocolName);
+
+            var DefaultIcon = mstsc.CreateSubKey("DefaultIcon");
+            var Shell = mstsc.CreateSubKey("Shell");
+            var Open = Shell.CreateSubKey("Open");
+            var Command = Open.CreateSubKey("Command");
+
+            mstsc.SetValue("", "URL:Remote Desktop Client Launcher");
+            mstsc.SetValue("URL Protocol", "");
+            DefaultIcon.SetValue("", $"\"{mstscLauncherPath}\",1");
+            Command.SetValue("", $"\"{mstscLauncherPath}\" \"%1\"");
         }
     }
 }
